@@ -4,6 +4,7 @@ import subprocess
 import random
 import os
 import sys
+import shutil
 import tlsh
 import argparse
 import ast
@@ -12,7 +13,7 @@ import re
 from ChunkExtraction import *
 
 savePath = "./target/"
-ctagsPath = "/usr/local/bin/ctags"
+ctagsPath = shutil.which("ctags") or "/usr/local/bin/ctags"
 databasePath = "./aligned_patch/"
 versionDatabasePath = "./aligned_cpe/"
 
@@ -554,11 +555,16 @@ def CPEjsonParser(jsonFile):
 
 def getReuseInfo(repoName):
     reused_OSSes = []
-    with open('../TPLReuseDetector/modified_result_without_func' + repoName, 'r') as f:
+    reuse_path = '../TPLReuseDetector/modified_result_without_func' + repoName
+    if not os.path.isfile(reuse_path):
+        print("Reuse detection result not found:", reuse_path)
+        print("Run TPLReuseDetector/Detector.py and fp_eliminator.py first.")
+        return {}
+    with open(reuse_path, 'r') as f:
         for line in f.readlines():
-           if line.startswith("\t"):
+            if line.startswith("\t"):
                 continue
-           else:
+            else:
                 reused_OSSes.append(line)
 
 
@@ -566,8 +572,13 @@ def getReuseInfo(repoName):
     for oss in reused_OSSes:
         print(oss)
         oss = oss.strip("\n").strip()
-        version = oss.split(' ')[1]
-        oss = oss.split(' ')[0]
+        if not oss:
+            continue
+        oss_parts = oss.split()
+        if len(oss_parts) < 2:
+            continue
+        version = oss_parts[1]
+        oss = oss_parts[0]
         oss_name = oss.split('@@')[1]
         oss_developer = oss.split('@@')[0]
 

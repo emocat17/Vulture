@@ -276,6 +276,8 @@ def compareFuncMap(result, target):
 def getCandidateFuncMap(inputPath, inputRepo):
     result_map = json.loads(open(inputPath).read())
     # print(result_map)
+    if inputRepo not in result_map:
+        return []
     result = result_map[inputRepo]
     return result
 
